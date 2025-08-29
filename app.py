@@ -1,10 +1,10 @@
+import os
 import time
-import requests
 import threading
+import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-import os
 
 # ================= USER CONFIG =================
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
@@ -91,9 +91,10 @@ def kick_browser_listener():
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")  # Reduce memory usage
-    driver = webdriver.Chrome(options=options)
+    options.add_argument("--disable-dev-shm-usage")  # very important for Railway
+    options.binary_location = os.environ.get("CHROME_BIN")
 
+    driver = webdriver.Chrome(options=options)
     driver.get(KICK_CHANNEL_URL)
     time.sleep(5)
 
@@ -131,10 +132,13 @@ def kick_browser_listener():
 
 # -------------------- MAIN --------------------
 if __name__ == "__main__":
-    yt_thread = threading.Thread(target=youtube_chat_listener, daemon=True)
-    kick_thread = threading.Thread(target=kick_browser_listener, daemon=True)
-    yt_thread.start()
-    kick_thread.start()
-
-    while True:
-        time.sleep(60)
+    try:
+        yt_thread = threading.Thread(target=youtube_chat_listener, daemon=True)
+        kick_thread = threading.Thread(target=kick_browser_listener, daemon=True)
+        yt_thread.start()
+        kick_thread.start()
+        while True:
+            time.sleep(60)
+    except Exception as e:
+        print("❌ Fatal error:", e)
+        time.sleep(10)
